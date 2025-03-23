@@ -1,0 +1,5 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<project ver="10" name="MiMovie" libEmbed="true" icon="icon\logo.ico" ui="win" output="MiMovie.exe" CompanyName="MillyLee" FileDescription="MiMovie" LegalCopyright="Copyright @ MillyLee" ProductName="MiMovie" InternalName="MiMovie" FileVersion="1.0.0.61" ProductVersion="1.0.0.61" publishDir="/dist/" dstrip="false" local="false" ignored="false">
+	<file name="main" path="main.aardio"/>
+	<folder name="窗体" path="forms" comment="" embed="true" local="false" ignored="false"/>
+</project>

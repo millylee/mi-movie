@@ -1,0 +1,85 @@
+import win.ui;
+import win.ui.menu;
+import web.view;
+import fsys.ini;
+import fsys.path;
+import io;
+
+var config = fsys.ini("/config.ini");
+var proxyUrl = config.read("setting", "proxyServer") : "";
+var homePage = config.read("setting", "homePage") : "https://www.iyf.tv";
+var userData = config.read("setting", "userData") : "/userData";
+
+mainForm = win.form(text="MiMovie";right=1299;bottom=799);
+mainForm.add();
+
+var wb = web.view(mainForm, {
+    extensions: true,
+    userDataDir: userData,
+    startArguments = #proxyUrl ? { proxyServer:proxyUrl } : {}
+});
+
+/*
+ * Load first-level subdirectories in the extensions directory
+ */
+var extensionPath = io.fullpath("/extension");
+if(io.exist(extensionPath)) {
+	fsys.enum( extensionPath, "*.*",
+    	function(dir,filename,fullpath,findData){ 
+        	if(findData.isDir){
+            	wb.loadExtension(fullpath);
+        	} 
+    	},
+    	false
+	);
+}
+
+wb.enableDevTools(false);
+wb.go(homePage);
+
+var menubar = win.ui.menu(mainForm);
+
+menubar.add('设置',function(id){ 
+    var settingForm = win.form(text="设置";right=400;bottom=200;parent=mainForm)
+    
+    // 代理设置
+    settingForm.add(
+        edit={cls="edit";left=100;top=20;right=350;bottom=45;edge=1;text=proxyUrl:""}
+    )
+    settingForm.add(
+        label={cls="static";text="代理地址:";left=20;top=25;right=95;bottom=45;}
+    )
+    
+    // 主页设置
+    settingForm.add(
+        homeEdit={cls="edit";left=100;top=60;right=350;bottom=85;edge=1;text=homePage:""}
+    )
+    settingForm.add(
+        homeLabel={cls="static";text="默认主页:";left=20;top=65;right=95;bottom=85;}
+    )
+    
+    // userData 设置
+    settingForm.add(
+        userDataEdit={cls="edit";left=100;top=100;right=350;bottom=125;edge=1;text=userData:""}
+    )
+    settingForm.add(
+        userDataLabel={cls="static";text="数据目录:";left=20;top=105;right=95;bottom=125;}
+    )
+    
+    settingForm.add(
+        btnOk={cls="button";text="确定";left=150;top=140;right=250;bottom=170;
+            oncommand = function(id,event){
+                config.write("setting", "proxyServer", settingForm.edit.text);
+                config.write("setting", "homePage", settingForm.homeEdit.text);
+                config.write("setting", "userData", settingForm.userDataEdit.text);
+                settingForm.close();
+                win.msgboxTest("设置已保存，重启后生效。", "提示");
+            }
+        }
+    )
+    
+    settingForm.show();
+});
+
+mainForm.show();
+win.loopMessage();
