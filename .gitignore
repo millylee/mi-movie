@@ -1,6 +1,3 @@
-config
-dist
-userData
-extension
-build_error_log.txt
-config.ini
+build/bin
+node_modules
+frontend/dist
