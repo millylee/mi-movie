@@ -1,93 +1,83 @@
 import {useState, useEffect} from 'react';
 import logo from './assets/images/logo-universal.png';
 import './App.css';
-import {Greet, GetHomePage, GetWebViewConfig, GetConfigInfo} from "../wailsjs/go/main/App";
+import {Greet, GetHomePage, GetWebViewConfig, GetConfigInfo, SetProxyServer, SetHomePage, SetUserData} from "../wailsjs/go/main/App";
 
 function App() {
-    const [resultText, setResultText] = useState("Please enter your name below 👇");
-    const [name, setName] = useState('');
     const [homePage, setHomePage] = useState('');
     const [config, setConfig] = useState<any>({});
-    const [showWebView, setShowWebView] = useState(false);
-    const updateName = (e: any) => setName(e.target.value);
-    const updateResultText = (result: string) => setResultText(result);
+    const [isLoading, setIsLoading] = useState(true);
 
-    function greet() {
-        Greet(name).then(updateResultText);
-    }
-
-    function navigateToHomePage() {
-        if (homePage && homePage !== '') {
-            setShowWebView(true);
-        }
-    }
-
-    function goBack() {
-        setShowWebView(false);
+    function navigateToURL(url: string) {
+        // 直接在当前WebView中导航
+        window.location.href = url;
     }
 
     useEffect(() => {
-        // Load configuration
-        GetConfigInfo().then(config => {
-            setConfig(config);
-        });
-        
-        GetHomePage().then(page => {
-            setHomePage(page);
-            if (page && page !== '' && page !== "https://www.iyf.tv") {
-                setTimeout(() => {
-                    setShowWebView(true);
-                }, 1000);
-            }
+        // Load configuration and navigate immediately
+        Promise.all([
+            GetConfigInfo(),
+            GetHomePage()
+        ]).then(([configData, pageUrl]) => {
+            setConfig(configData);
+            setHomePage(pageUrl);
+            
+            // 使用配置的URL或默认URL
+            const targetUrl = pageUrl || 'https://www.iyf.tv';
+            setIsLoading(false);
+            
+            // 立即导航到目标URL
+            setTimeout(() => {
+                navigateToURL(targetUrl);
+            }, 100); // 短暂延迟确保页面渲染完成
+        }).catch(error => {
+            console.error('Failed to load configuration:', error);
+            setIsLoading(false);
+            // 即使配置加载失败，也导航到默认页面
+            setTimeout(() => {
+                navigateToURL('https://www.iyf.tv');
+            }, 100);
         });
     }, []);
 
-    // Show webview if custom home page is set
-    if (showWebView && homePage) {
+    // 如果正在加载配置，显示加载界面
+    if (isLoading) {
         return (
-            <div style={{width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column'}}>
-                <div style={{padding: '10px', backgroundColor: '#f0f0f0', borderBottom: '1px solid #ccc'}}>
-                    <button onClick={goBack} style={{marginRight: '10px'}}>返回</button>
-                    <span>当前页面: {homePage}</span>
-                    <div style={{fontSize: '12px', color: '#666', marginTop: '5px'}}>
-                        代理: {config.proxyServer || '未设置'} | 数据目录: {config.userData || '默认位置'}
-                    </div>
+            <div style={{
+                width: '100vw', 
+                height: '100vh', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                backgroundColor: '#f5f5f5'
+            }}>
+                <div style={{textAlign: 'center'}}>
+                    <img src={logo} style={{width: '64px', height: '64px', marginBottom: '20px'}} alt="logo"/>
+                    <p style={{fontSize: '18px', color: '#666'}}>正在加载配置...</p>
                 </div>
-                <iframe 
-                    src={homePage} 
-                    style={{width: '100%', height: '100%', border: 'none'}}
-                    title="Web Content"
-                />
             </div>
         );
     }
 
+    // 主要界面：简洁的加载提示
     return (
-        <div id="App">
-            <img src={logo} id="logo" alt="logo"/>
-            <div id="result" className="result">{resultText}</div>
-            <div id="input" className="input-box">
-                <input id="name" className="input" onChange={updateName} autoComplete="off" name="input" type="text"/>
-                <button className="btn" onClick={greet}>Greet</button>
-            </div>
-            <div className="navigation">
-                <button className="btn" onClick={navigateToHomePage}>
-                    Go to Home Page {homePage && homePage !== "https://www.iyf.tv" ? `(${homePage})` : ''}
-                </button>
-            </div>
-            <div className="config-info" style={{marginTop: '20px', padding: '15px', backgroundColor: '#f5f5f5', borderRadius: '5px'}}>
-                <h3>当前配置:</h3>
-                <p><strong>主页:</strong> {homePage || '未设置'}</p>
-                <p><strong>代理服务器:</strong> {config.proxyServer || '未设置'}</p>
-                <p><strong>用户数据目录:</strong> {config.userData || '默认位置'}</p>
-                {config.configPath && (
-                    <p><strong>配置文件路径:</strong> <code style={{fontSize: '12px', backgroundColor: '#e0e0e0', padding: '2px 4px', borderRadius: '3px'}}>{config.configPath}</code></p>
-                )}
-                {homePage && homePage !== "https://www.iyf.tv" && (
-                    <p style={{color: '#666', fontSize: '14px'}}>
-                        <em>检测到自定义主页，将在1秒后自动跳转...</em>
+        <div style={{width: '100vw', height: '100vh', position: 'relative'}}>
+            {/* 如果没有成功导航，显示提示信息 */}
+            <div style={{
+                width: '100%', 
+                height: '100%', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                backgroundColor: '#f9f9f9'
+            }}>
+                <div style={{textAlign: 'center', color: '#666'}}>
+                    <p style={{fontSize: '18px', marginBottom: '10px'}}>正在加载网页...</p>
+                    <p style={{fontSize: '14px'}}>目标地址: {homePage || 'https://www.iyf.tv'}</p>
+                    <p style={{fontSize: '12px', marginTop: '20px', color: '#999'}}>
+                        提示: 使用菜单栏 文件 → 设置 来配置应用
                     </p>
-                )}
+                </div>
             </div>
         </div>
     )

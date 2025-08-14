@@ -18,6 +18,10 @@ export function GetProxyServer() {
   return window['go']['main']['App']['GetProxyServer']();
 }
 
+export function GetUserAgent() {
+  return window['go']['main']['App']['GetUserAgent']();
+}
+
 export function GetUserData() {
   return window['go']['main']['App']['GetUserData']();
 }
@@ -34,6 +38,26 @@ export function NavigateToHome() {
   return window['go']['main']['App']['NavigateToHome']();
 }
 
+export function OpenConfigDialog() {
+  return window['go']['main']['App']['OpenConfigDialog']();
+}
+
+export function OpenSettingsWindow() {
+  return window['go']['main']['App']['OpenSettingsWindow']();
+}
+
+export function OpenURLInBrowser(arg1) {
+  return window['go']['main']['App']['OpenURLInBrowser'](arg1);
+}
+
+export function ReloadConfig() {
+  return window['go']['main']['App']['ReloadConfig']();
+}
+
+export function RestartApplication() {
+  return window['go']['main']['App']['RestartApplication']();
+}
+
 export function SetHomePage(arg1) {
   return window['go']['main']['App']['SetHomePage'](arg1);
 }
@@ -42,6 +66,14 @@ export function SetProxyServer(arg1) {
   return window['go']['main']['App']['SetProxyServer'](arg1);
 }
 
+export function SetUserAgent(arg1) {
+  return window['go']['main']['App']['SetUserAgent'](arg1);
+}
+
 export function SetUserData(arg1) {
   return window['go']['main']['App']['SetUserData'](arg1);
+}
+
+export function UpdateConfig(arg1) {
+  return window['go']['main']['App']['UpdateConfig'](arg1);
 }

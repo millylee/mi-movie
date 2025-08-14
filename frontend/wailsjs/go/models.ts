@@ -4,6 +4,8 @@ export namespace main {
 	    proxyServer: string;
 	    homePage: string;
 	    userData: string;
+	    userAgent: string;
+	    antiDetection: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new Config(source);
@@ -14,6 +16,8 @@ export namespace main {
 	        this.proxyServer = source["proxyServer"];
 	        this.homePage = source["homePage"];
 	        this.userData = source["userData"];
+	        this.userAgent = source["userAgent"];
+	        this.antiDetection = source["antiDetection"];
 	    }
 	}
 

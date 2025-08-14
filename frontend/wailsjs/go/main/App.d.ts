@@ -10,6 +10,8 @@ export function GetHomePage():Promise<string>;
 
 export function GetProxyServer():Promise<string>;
 
+export function GetUserAgent():Promise<string>;
+
 export function GetUserData():Promise<string>;
 
 export function GetWebViewConfig():Promise<Record<string, string>>;
@@ -18,8 +20,22 @@ export function Greet(arg1:string):Promise<string>;
 
 export function NavigateToHome():Promise<void>;
 
+export function OpenConfigDialog():Promise<void>;
+
+export function OpenSettingsWindow():Promise<void>;
+
+export function OpenURLInBrowser(arg1:string):Promise<void>;
+
+export function ReloadConfig():Promise<void>;
+
+export function RestartApplication():Promise<void>;
+
 export function SetHomePage(arg1:string):Promise<void>;
 
 export function SetProxyServer(arg1:string):Promise<void>;
 
+export function SetUserAgent(arg1:string):Promise<void>;
+
 export function SetUserData(arg1:string):Promise<void>;
+
+export function UpdateConfig(arg1:Record<string, string>):Promise<void>;
