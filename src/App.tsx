@@ -13,15 +13,12 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    console.log("App mounted, loading settings...");
     loadSettings();
   }, []);
 
   const loadSettings = async () => {
     try {
-      console.log("Calling get_settings...");
       const loadedSettings = await invoke<AppSettings>("get_settings");
-      console.log("Settings loaded:", loadedSettings);
       setSettings(loadedSettings);
     } catch (error) {
       console.error("Failed to load settings:", error);
