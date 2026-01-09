@@ -15,7 +15,9 @@ interface SettingsProps {
 export default function Settings({ initialSettings, onSave }: SettingsProps) {
   const [proxy, setProxy] = useState(initialSettings?.proxy || "");
   const [targetUrl, setTargetUrl] = useState(initialSettings?.targetUrl || "");
-  const [userDataPath, setUserDataPath] = useState(initialSettings?.userDataPath || "");
+  const [userDataPath, setUserDataPath] = useState(
+    initialSettings?.userDataPath || ""
+  );
 
   const handleSelectFolder = async () => {
     try {
@@ -74,31 +76,6 @@ export default function Settings({ initialSettings, onSave }: SettingsProps) {
 
   return (
     <div className="flex flex-col h-screen bg-background">
-      {/* 自定义标题栏 */}
-      <div className="h-8 bg-card border-b border-border flex items-center justify-between px-3 select-none">
-        <div data-tauri-drag-region className="flex-1 flex items-center">
-          <span className="text-sm font-medium text-foreground">MiMovie 设置</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <button
-            onClick={handleMinimize}
-            className="w-8 h-6 flex items-center justify-center hover:bg-accent rounded transition-colors"
-          >
-            <svg className="w-3 h-3" viewBox="0 0 12 12" fill="currentColor">
-              <rect x="0" y="5" width="12" height="2" />
-            </svg>
-          </button>
-          <button
-            onClick={handleClose}
-            className="w-8 h-6 flex items-center justify-center hover:bg-destructive hover:text-destructive-foreground rounded transition-colors"
-          >
-            <svg className="w-3 h-3" viewBox="0 0 12 12" fill="currentColor">
-              <path d="M11.25 1.81L10.19 0.75L6 4.94L1.81 0.75L0.75 1.81L4.94 6L0.75 10.19L1.81 11.25L6 7.06L10.19 11.25L11.25 10.19L7.06 6L11.25 1.81Z" />
-            </svg>
-          </button>
-        </div>
-      </div>
-
       {/* 设置内容 */}
       <div className="flex-1 flex items-center justify-center p-4 overflow-auto">
         <div className="w-full max-w-md space-y-6 bg-card p-6 rounded-lg border border-border shadow-lg">
@@ -147,7 +124,11 @@ export default function Settings({ initialSettings, onSave }: SettingsProps) {
                   value={userDataPath}
                   onChange={(e) => setUserDataPath(e.target.value)}
                 />
-                <Button type="button" variant="outline" onClick={handleSelectFolder}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleSelectFolder}
+                >
                   浏览
                 </Button>
               </div>

@@ -20,6 +20,7 @@ struct AppState {
 
 #[tauri::command]
 fn get_settings(state: State<AppState>) -> Result<AppSettings, String> {
+    println!("get_settings called");
     let manager = state.settings_manager.lock().map_err(|e| e.to_string())?;
     manager.load().map_err(|e| e.to_string())
 }
@@ -61,7 +62,7 @@ fn create_settings_window(app: &tauri::AppHandle) -> tauri::Result<tauri::Webvie
     .resizable(true)
     .center()
     .visible(true)
-    .decorations(false)
+    .decorations(true)
     .focused(true)
     .build()
 }
@@ -202,15 +203,57 @@ fn main() {
                             }
                         }
                         "settings" => {
-                            // 无论是显示现有还是创建新设置窗口
-                            // 注意：open_settings 是 async 命令函数，不能在 sync closure 直接调用其逻辑
-                            // 但我们可以重用 open_settings 的逻辑，或者通过 app handle 直接操作
-                            if let Some(w) = app.get_webview_window("settings") {
-                                let _ = w.show();
-                                let _ = w.set_focus();
-                            } else {
-                                let _ = create_settings_window(app);
-                            }
+                            let app = app.clone();
+                            tauri::async_runtime::spawn(async move {
+                                println!("Async settings handler started");
+                                let state = app.state::<AppState>();
+                                
+                                // 1. 标记正在切换窗口（允许关闭）
+                                if let Ok(mut reloading) = state.is_reloading.lock() {
+                                    *reloading = true;
+                                }
+
+                                // 2. 如果有主窗口，关闭它（而不是隐藏）
+                                if let Some(main_window) = app.get_webview_window("main") {
+                                    println!("Closing main window to switch to settings...");
+                                    if let Err(e) = main_window.close() {
+                                        println!("Error closing main window: {}", e);
+                                    }
+                                    
+                                    // 等待关闭
+                                    let mut retries = 0;
+                                    while app.get_webview_window("main").is_some() {
+                                        if retries > 50 { 
+                                            println!("Timeout waiting for main window close");
+                                            break;
+                                        }
+                                        std::thread::sleep(std::time::Duration::from_millis(100));
+                                        retries += 1;
+                                    }
+                                    println!("Main window closed");
+                                    
+                                    // 关键：增加缓冲时间，确保 Webview2 进程完全释放资源（User Data 锁）
+                                    std::thread::sleep(std::time::Duration::from_millis(1000));
+                                }
+
+                                // 3. 标记结束切换（恢复拦截）
+                                if let Ok(mut reloading) = state.is_reloading.lock() {
+                                    *reloading = false;
+                                }
+
+                                // 4. 显示或创建设置窗口
+                                if let Some(w) = app.get_webview_window("settings") {
+                                    println!("Showing existing settings window...");
+                                    let _ = w.show();
+                                    let _ = w.set_focus();
+                                } else {
+                                    println!("Creating new settings window...");
+                                    match create_settings_window(&app) {
+                                        Ok(_) => println!("Settings window created successfully"),
+                                        Err(e) => println!("Failed to create settings window: {}", e),
+                                    }
+                                }
+                            });
                         }
                         "quit" => app.exit(0),
                         _ => {}
@@ -288,7 +331,17 @@ fn main() {
         })
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
-        .run(|_app_handle, _event| {
-            // 空闭包，不做额外处理
+        .run(|app_handle, event| {
+            if let RunEvent::ExitRequested { api, .. } = event {
+                let state = app_handle.state::<AppState>();
+                let is_reloading = state.is_reloading.lock().map(|b| *b).unwrap_or(false);
+                
+                if is_reloading {
+                    println!("Preventing exit during window switch");
+                    api.prevent_exit();
+                } else {
+                    println!("Allowing exit");
+                }
+            }
         });
 }
