@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm:*)",
+      "Bash(ls:*)",
+      "Edit",
+      "Bash(npm.cmd:*)",
+      "Bash(cd:*)"
+    ]
+  }
+}

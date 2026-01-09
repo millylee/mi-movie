@@ -1,6 +1,41 @@
-config
-dist
-userData
-extension
-build_error_log.txt
+# Dependencies
+node_modules/
+dist/
+
+# Tauri
+src-tauri/target/
+
+# User data
+userData/
 config.ini
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+build_error_log.txt
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# OS
+Thumbs.db
+
+# Extensions (uncomment if you don't want to commit extensions)
+# extension/
