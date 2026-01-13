@@ -2,7 +2,7 @@
 name = "mi-movie"
 version = "0.1.0"
 description = "A cross-platform movie application with proxy and extension support"
-authors = ["you"]
+authors = ["MillyLee <millyleecn@gmail.com>"]
 license = ""
 repository = ""
 edition = "2021"

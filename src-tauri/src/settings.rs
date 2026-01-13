@@ -27,7 +27,7 @@ pub struct SettingsManager {
 
 impl SettingsManager {
     pub fn new() -> Self {
-        let config_dir = directories::ProjectDirs::from("com", "mimovie", "MiMovie")
+        let config_dir = directories::ProjectDirs::from("", "", "MiMovie")
             .map(|dirs| dirs.config_dir().to_path_buf())
             .unwrap_or_else(|| PathBuf::from("."));
 
