@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -27,30 +26,6 @@ export default function Settings({ initialSettings, onSave }: SettingsProps) {
       proxy,
       targetUrl,
     });
-  };
-
-  const handleMinimize = async () => {
-    try {
-      console.log("handleMinimize called");
-      const window = getCurrentWindow();
-      console.log("Current window label:", window.label);
-      await window.hide();
-      console.log("Window hidden successfully");
-    } catch (error) {
-      console.error("Failed to minimize window:", error);
-    }
-  };
-
-  const handleClose = async () => {
-    try {
-      console.log("handleClose called");
-      const window = getCurrentWindow();
-      console.log("Current window label:", window.label);
-      await window.hide();
-      console.log("Window hidden successfully");
-    } catch (error) {
-      console.error("Failed to close window:", error);
-    }
   };
 
   return (
