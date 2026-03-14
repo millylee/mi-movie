@@ -49,23 +49,22 @@ fn create_settings_window(app: &tauri::AppHandle) -> tauri::Result<tauri::Webvie
     if let Some(window) = app.get_webview_window("settings") {
         return Ok(window);
     }
-    WebviewWindowBuilder::new(
-        app,
-        "settings",
-        WebviewUrl::App("index.html".into()),
-    )
-    .title("MiMovie 设置")
-    .inner_size(500.0, 650.0)
-    .min_inner_size(400.0, 550.0)
-    .resizable(true)
-    .center()
-    .visible(true)
-    .decorations(true)
-    .focused(true)
-    .build()
+    WebviewWindowBuilder::new(app, "settings", WebviewUrl::App("index.html".into()))
+        .title("MiMovie 设置")
+        .inner_size(500.0, 650.0)
+        .min_inner_size(400.0, 550.0)
+        .resizable(true)
+        .center()
+        .visible(true)
+        .decorations(true)
+        .focused(true)
+        .build()
 }
 
-fn create_main_window(app: &tauri::AppHandle, settings: &AppSettings) -> tauri::Result<tauri::WebviewWindow> {
+fn create_main_window(
+    app: &tauri::AppHandle,
+    settings: &AppSettings,
+) -> tauri::Result<tauri::WebviewWindow> {
     let mut builder = WebviewWindowBuilder::new(
         app,
         "main",
@@ -77,7 +76,7 @@ fn create_main_window(app: &tauri::AppHandle, settings: &AppSettings) -> tauri::
         ),
     )
     .title("MiMovie")
-    .inner_size(1400.0, 800.0)
+    .inner_size(1280.0, 800.0)
     .min_inner_size(800.0, 600.0)
     .resizable(true)
     .center()
@@ -98,11 +97,10 @@ fn create_main_window(app: &tauri::AppHandle, settings: &AppSettings) -> tauri::
     builder.build()
 }
 
-
 #[tauri::command(rename_all = "snake_case", name = "reload_main_window")]
 async fn reload_main_window(settings: AppSettings, app: tauri::AppHandle) -> Result<(), String> {
     let state = app.state::<AppState>();
-    
+
     // 0. 先隐藏设置窗口，避免视觉干扰
     // 保存设置窗口的引用，以便出错时恢复显示
     let settings_window = app.get_webview_window("settings");
@@ -120,11 +118,12 @@ async fn reload_main_window(settings: AppSettings, app: tauri::AppHandle) -> Res
         if let Err(e) = main_window.close() {
             println!("Error closing main window: {}", e);
         }
-        
+
         // 等待窗口完全销毁
         let mut retries = 0;
         while app.get_webview_window("main").is_some() {
-            if retries > 50 { // 5秒超时
+            if retries > 50 {
+                // 5秒超时
                 break;
             }
             std::thread::sleep(std::time::Duration::from_millis(100));
@@ -141,9 +140,7 @@ async fn reload_main_window(settings: AppSettings, app: tauri::AppHandle) -> Res
 
     // 创建新窗口
     match create_main_window(&app, &settings) {
-        Ok(_) => {
-            Ok(())
-        },
+        Ok(_) => Ok(()),
         Err(e) => {
             println!("Failed to create main window: {}", e);
             // 失败时恢复显示设置窗口
@@ -188,7 +185,8 @@ fn main() {
                             if let Some(main_window) = app.get_webview_window("main") {
                                 let _ = main_window.show();
                                 let _ = main_window.set_focus();
-                            } else if let Some(settings_window) = app.get_webview_window("settings") {
+                            } else if let Some(settings_window) = app.get_webview_window("settings")
+                            {
                                 // 如果没有主窗口，显示设置窗口
                                 let _ = settings_window.show();
                                 let _ = settings_window.set_focus();
@@ -198,7 +196,7 @@ fn main() {
                             let app = app.clone();
                             tauri::async_runtime::spawn(async move {
                                 let state = app.state::<AppState>();
-                                
+
                                 // 1. 标记正在切换窗口（允许关闭）
                                 if let Ok(mut reloading) = state.is_reloading.lock() {
                                     *reloading = true;
@@ -209,17 +207,17 @@ fn main() {
                                     if let Err(e) = main_window.close() {
                                         println!("Error closing main window: {}", e);
                                     }
-                                    
+
                                     // 等待关闭
                                     let mut retries = 0;
                                     while app.get_webview_window("main").is_some() {
-                                        if retries > 50 { 
+                                        if retries > 50 {
                                             break;
                                         }
                                         std::thread::sleep(std::time::Duration::from_millis(100));
                                         retries += 1;
                                     }
-                                    
+
                                     // 关键：增加缓冲时间，确保 Webview2 进程完全释放资源（User Data 锁）
                                     std::thread::sleep(std::time::Duration::from_millis(500));
                                 }
@@ -249,7 +247,8 @@ fn main() {
                         button: MouseButton::Left,
                         button_state: MouseButtonState::Up,
                         ..
-                    } = event {
+                    } = event
+                    {
                         let app = tray.app_handle();
                         // 优先显示主窗口
                         if let Some(main_window) = app.get_webview_window("main") {
@@ -274,8 +273,13 @@ fn main() {
             *state.tray_icon.lock().unwrap() = Some(tray);
 
             // 启动逻辑
-            let settings = state.settings_manager.lock().unwrap().load().unwrap_or_default();
-            
+            let settings = state
+                .settings_manager
+                .lock()
+                .unwrap()
+                .load()
+                .unwrap_or_default();
+
             if !settings.target_url.is_empty() {
                 // 有配置，启动主窗口
                 create_main_window(app.handle(), &settings)?;
@@ -289,7 +293,7 @@ fn main() {
         .on_window_event(|window, event| {
             if let WindowEvent::CloseRequested { api, .. } = event {
                 let label = window.label();
-                
+
                 // 检查是否正在重载
                 let app_handle = window.app_handle();
                 let state = app_handle.state::<AppState>();
@@ -313,10 +317,10 @@ fn main() {
             if let RunEvent::ExitRequested { api, .. } = event {
                 let state = app_handle.state::<AppState>();
                 let is_reloading = state.is_reloading.lock().map(|b| *b).unwrap_or(false);
-                
+
                 if is_reloading {
                     api.prevent_exit();
-                } 
+                }
             }
         });
 }
