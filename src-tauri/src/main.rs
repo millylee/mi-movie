@@ -4,7 +4,12 @@
 mod settings;
 
 use settings::{AppSettings, SettingsManager};
-use std::sync::Mutex;
+use std::{
+    fs,
+    io::Write,
+    path::{Path, PathBuf},
+    sync::Mutex,
+};
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent},
@@ -61,10 +66,120 @@ fn create_settings_window(app: &tauri::AppHandle) -> tauri::Result<tauri::Webvie
         .build()
 }
 
+fn app_data_dir() -> PathBuf {
+    directories::ProjectDirs::from("", "", "MiMovie")
+        .map(|dirs| {
+            let data_dir = dirs.data_dir().to_path_buf();
+            data_dir.parent().unwrap_or(&data_dir).to_path_buf()
+        })
+        .unwrap_or_else(|| PathBuf::from("."))
+}
+
+fn extensions_root() -> PathBuf {
+    app_data_dir().join("extension")
+}
+
+fn extensions_log_path() -> PathBuf {
+    app_data_dir().join("log").join("extension.log")
+}
+
+fn log_to_file(message: &str) {
+    let log_path = extensions_log_path();
+    if let Some(parent) = log_path.parent() {
+        if let Err(e) = fs::create_dir_all(parent) {
+            println!("Failed to create log directory: {}", e);
+            return;
+        }
+    }
+    let mut file = match fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&log_path)
+    {
+        Ok(file) => file,
+        Err(e) => {
+            println!("Failed to open log file: {}", e);
+            return;
+        }
+    };
+    let _ = writeln!(file, "{}", message);
+}
+
+fn discover_extension_dirs(root: &Path) -> Vec<PathBuf> {
+    let mut result = Vec::new();
+    if !root.exists() {
+        log_to_file(&format!(
+            "Extension root does not exist: {}",
+            root.to_string_lossy()
+        ));
+        return result;
+    }
+    let entries = match fs::read_dir(root) {
+        Ok(entries) => entries,
+        Err(e) => {
+            log_to_file(&format!(
+                "Failed to read extension root {}: {}",
+                root.to_string_lossy(),
+                e
+            ));
+            return result;
+        }
+    };
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if !path.is_dir() {
+            continue;
+        }
+        if path.join("manifest.json").is_file() {
+            result.push(path);
+        }
+    }
+    log_to_file(&format!(
+        "Discovered {} extension(s) under {}",
+        result.len(),
+        root.to_string_lossy()
+    ));
+    result
+}
+
+fn format_extension_arg(paths: &[PathBuf]) -> String {
+    paths
+        .iter()
+        .map(|p| format!("\"{}\"", p.to_string_lossy()))
+        .collect::<Vec<_>>()
+        .join(",")
+}
+
+fn resolve_webview_data_dir(settings: &AppSettings) -> PathBuf {
+    if !settings.user_data_path.is_empty() {
+        PathBuf::from(&settings.user_data_path)
+    } else {
+        app_data_dir().join("webview")
+    }
+}
+
 fn create_main_window(
     app: &tauri::AppHandle,
     settings: &AppSettings,
 ) -> tauri::Result<tauri::WebviewWindow> {
+    let webview_data_dir = resolve_webview_data_dir(settings);
+    if let Err(e) = fs::create_dir_all(&webview_data_dir) {
+        println!("Failed to create webview data directory: {}", e);
+    }
+
+    let extension_dirs = discover_extension_dirs(&extensions_root());
+
+    if extension_dirs.is_empty() {
+        log_to_file("No extensions found to load.");
+    } else {
+        let list = extension_dirs
+            .iter()
+            .map(|p| p.to_string_lossy().to_string())
+            .collect::<Vec<_>>()
+            .join(", ");
+        log_to_file(&format!("Extensions to load: {}", list));
+    }
+
     let mut builder = WebviewWindowBuilder::new(
         app,
         "main",
@@ -83,6 +198,20 @@ fn create_main_window(
     .visible(true)
     .decorations(true)
     .focused(true);
+
+    builder = builder.data_directory(webview_data_dir);
+
+    #[cfg(target_os = "windows")]
+    if !extension_dirs.is_empty() {
+        builder = builder.browser_extensions_enabled(true);
+        let extensions_arg = format_extension_arg(&extension_dirs);
+        let args = format!(
+            "--disable-extensions-except={} --load-extension={}",
+            extensions_arg, extensions_arg
+        );
+        log_to_file(&format!("WebView2 extension args: {}", args));
+        builder = builder.additional_browser_args(&args);
+    }
 
     // 如果设置了代理，应用代理配置
     if !settings.proxy.is_empty() {

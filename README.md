@@ -10,6 +10,28 @@
 - ✅ **跨平台**：支持 Windows、macOS 和 Linux
 - ✅ **系统托盘**：支持最小化到托盘，托盘菜单控制
 
+## 扩展自动加载（Windows）
+应用启动时会自动扫描数据目录下的扩展并加载（仅 Windows / WebView2 支持）。
+
+**扩展目录：**
+- `%APPDATA%\MiMovie\extension`
+
+**目录结构示例：**
+```
+extension/
+  ├── example-extension/
+  │   ├── manifest.json
+  │   ├── background.js
+  │   ├── content.js
+  │   └── icons/
+  │       └── icon.png
+```
+
+**日志：**
+- 扩展加载日志保存在 `%APPDATA%\MiMovie\log\extension.log`
+
+> 说明：仅支持解压后的扩展目录，不支持 `.crx`。macOS/Linux 底层 WebView 不支持 Chrome 扩展。
+
 ## 需求与行为规约 (Design Specification)
 
 为了确保应用行为的一致性和稳定性，以下是应用的核心行为定义。后续的重构和修复将严格遵循此规约。
