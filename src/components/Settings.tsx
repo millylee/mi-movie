@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { open } from "@tauri-apps/plugin-dialog";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -15,25 +14,6 @@ interface SettingsProps {
 export default function Settings({ initialSettings, onSave }: SettingsProps) {
   const [proxy, setProxy] = useState(initialSettings?.proxy || "");
   const [targetUrl, setTargetUrl] = useState(initialSettings?.targetUrl || "");
-  const [userDataPath, setUserDataPath] = useState(
-    initialSettings?.userDataPath || ""
-  );
-
-  const handleSelectFolder = async () => {
-    try {
-      const selected = await open({
-        directory: true,
-        multiple: false,
-        title: "选择用户数据目录",
-      });
-
-      if (selected && typeof selected === "string") {
-        setUserDataPath(selected);
-      }
-    } catch (error) {
-      console.error("Failed to select folder:", error);
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +26,6 @@ export default function Settings({ initialSettings, onSave }: SettingsProps) {
     onSave({
       proxy,
       targetUrl,
-      userDataPath,
     });
   };
 
@@ -78,12 +57,7 @@ export default function Settings({ initialSettings, onSave }: SettingsProps) {
     <div className="flex flex-col h-screen bg-background">
       {/* 设置内容 */}
       <div className="flex-1 flex items-center justify-center p-4 overflow-auto">
-        <div className="w-full max-w-md space-y-6 bg-card p-6 rounded-lg border border-border shadow-lg">
-          <div className="space-y-2 text-center">
-            <h1 className="text-2xl font-bold text-foreground">应用设置</h1>
-            <p className="text-sm text-muted-foreground">配置应用程序参数</p>
-          </div>
-
+        <div className="w-full max-w-md space-y-6 p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="targetUrl">目标网站 URL *</Label>
@@ -114,40 +88,11 @@ export default function Settings({ initialSettings, onSave }: SettingsProps) {
               </p>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="userDataPath">用户数据目录</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="userDataPath"
-                  type="text"
-                  placeholder="留空使用默认路径"
-                  value={userDataPath}
-                  onChange={(e) => setUserDataPath(e.target.value)}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleSelectFolder}
-                >
-                  浏览
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                浏览器用户数据存储路径 (可选，WebView 模式不生效)
-              </p>
-            </div>
-
             <div className="pt-4">
               <Button type="submit" className="w-full">
                 保存并启动
               </Button>
             </div>
-
-            {initialSettings?.targetUrl && (
-              <p className="text-xs text-center text-muted-foreground">
-                关闭窗口将最小化到系统托盘
-              </p>
-            )}
           </form>
         </div>
       </div>

@@ -5,7 +5,6 @@ import Settings from "./components/Settings";
 export interface AppSettings {
   proxy: string;
   targetUrl: string;
-  userDataPath: string;
 }
 
 function App() {

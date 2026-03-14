@@ -8,7 +8,6 @@ use std::path::PathBuf;
 pub struct AppSettings {
     pub proxy: String,
     pub target_url: String,
-    pub user_data_path: String,
 }
 
 impl Default for AppSettings {
@@ -16,7 +15,6 @@ impl Default for AppSettings {
         Self {
             proxy: String::new(),
             target_url: String::new(),
-            user_data_path: String::new(),
         }
     }
 }

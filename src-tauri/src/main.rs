@@ -56,9 +56,10 @@ fn create_settings_window(app: &tauri::AppHandle) -> tauri::Result<tauri::Webvie
     }
     WebviewWindowBuilder::new(app, "settings", WebviewUrl::App("index.html".into()))
         .title("MiMovie 设置")
-        .inner_size(500.0, 650.0)
-        .min_inner_size(400.0, 550.0)
-        .resizable(true)
+        .inner_size(400.0, 400.0)
+        .min_inner_size(400.0, 400.0)
+        .resizable(false)
+        .maximizable(false)
         .center()
         .visible(true)
         .decorations(true)
@@ -150,12 +151,8 @@ fn format_extension_arg(paths: &[PathBuf]) -> String {
         .join(",")
 }
 
-fn resolve_webview_data_dir(settings: &AppSettings) -> PathBuf {
-    if !settings.user_data_path.is_empty() {
-        PathBuf::from(&settings.user_data_path)
-    } else {
-        app_data_dir().join("webview")
-    }
+fn resolve_webview_data_dir(_settings: &AppSettings) -> PathBuf {
+    app_data_dir().join("webview")
 }
 
 fn create_main_window(
@@ -433,8 +430,33 @@ fn main() {
                     return;
                 }
 
+                if label == "settings" {
+                    api.prevent_close();
+                    let settings = state
+                        .settings_manager
+                        .lock()
+                        .ok()
+                        .and_then(|manager| manager.load().ok())
+                        .unwrap_or_default();
+
+                    if !settings.target_url.is_empty() {
+                        if let Some(main_window) = app_handle.get_webview_window("main") {
+                            let _ = main_window.show();
+                            let _ = main_window.set_focus();
+                        } else if let Ok(main_window) = create_main_window(&app_handle, &settings) {
+                            let _ = main_window.show();
+                            let _ = main_window.set_focus();
+                        }
+                        let _ = window.hide();
+                        return;
+                    }
+
+                    let _ = window.hide();
+                    return;
+                }
+
                 // 默认行为：拦截关闭，改为隐藏
-                if label == "main" || label == "settings" {
+                if label == "main" {
                     api.prevent_close();
                     let _ = window.hide();
                 }
