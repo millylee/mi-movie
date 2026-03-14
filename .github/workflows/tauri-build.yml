@@ -37,7 +37,7 @@ jobs:
         run: pnpm install
 
       - name: Sync versions from package.json
-        run: node scripts/sync-version.js
+        run: node scripts/sync-version.cjs
 
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0

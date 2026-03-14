@@ -8,8 +8,8 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
-    "sync-version": "node scripts/sync-version.js",
-    "build:tauri": "node scripts/sync-version.js && pnpm tauri build"
+    "sync-version": "node scripts/sync-version.cjs",
+    "build:tauri": "node scripts/sync-version.cjs && pnpm tauri build"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.10.0",
