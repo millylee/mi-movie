@@ -31,7 +31,11 @@
     "windows": {
       "certificateThumbprint": null,
       "digestAlgorithm": "sha256",
-      "timestampUrl": ""
+      "timestampUrl": "",
+      "nsis": {
+        "template": "./windows/installer.nsi",
+        "installerIcon": "icons/icon.ico"
+      }
     }
   },
   "app": {
