@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "sync-version": "node scripts/sync-version.cjs",
-    "build:tauri": "node scripts/sync-version.cjs && pnpm tauri build"
+    "build:tauri": "node scripts/sync-version.cjs && pnpm tauri icon public/icon.png && pnpm tauri build"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.10.0",

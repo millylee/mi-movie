@@ -45,6 +45,9 @@ jobs:
       - name: Sync versions from package.json
         run: node scripts/sync-version.cjs
 
+      - name: Generate icons from public/icon.png
+        run: pnpm tauri icon public/icon.png
+
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
         env:
@@ -77,10 +80,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            release/**/*.msi
             release/**/*.exe
             release/**/*.dmg
-            release/**/*.deb
             release/**/*.AppImage
           fail_on_unmatched_files: false
           generate_release_notes: true
