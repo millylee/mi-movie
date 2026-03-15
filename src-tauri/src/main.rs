@@ -364,7 +364,14 @@ fn main() {
                                 }
                             });
                         }
-                        "quit" => app.exit(0),
+                        "quit" => {
+                            // 先销毁托盘图标，避免退出后图标残留需鼠标悬停才消失
+                            if let Ok(mut tray_guard) = app.state::<AppState>().tray_icon.lock() {
+                                *tray_guard = None;
+                            }
+                            std::thread::sleep(std::time::Duration::from_millis(100));
+                            app.exit(0);
+                        }
                         _ => {}
                     }
                 })
@@ -458,6 +465,13 @@ fn main() {
                 // 默认行为：拦截关闭，改为隐藏
                 if label == "main" {
                     api.prevent_close();
+                    // 隐藏前暂停音视频。WebView2 无原生 API，见：
+                    // https://github.com/MicrosoftEdge/WebView2Feedback/issues/3348
+                    const PAUSE_MEDIA_JS: &str =
+                        "document.querySelectorAll('video, audio').forEach(el => el.pause());";
+                    if let Some(webview) = app_handle.get_webview_window("main") {
+                        let _ = webview.eval(PAUSE_MEDIA_JS);
+                    }
                     let _ = window.hide();
                 }
             }

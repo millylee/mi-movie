@@ -56,6 +56,12 @@ jobs:
           args: "--verbose"
           tauriScript: "pnpm tauri"
 
+      - name: Rename Windows installer (remove -setup suffix)
+        if: success() && matrix.os == 'windows-latest'
+        run: |
+          $file = Get-ChildItem -Path "src-tauri/target/release/bundle/nsis" -Filter "*-setup.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($file) { Rename-Item $file.FullName -NewName ($file.Name -replace '-setup\.exe$','.exe') }
+
       - name: Upload build artifacts
         if: success()
         uses: actions/upload-artifact@v6

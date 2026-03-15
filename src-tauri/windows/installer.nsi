@@ -45,7 +45,7 @@ ${StrLoc}
 !define MAINBINARYSRCPATH "{{main_binary_path}}"
 !define BUNDLEID "{{bundle_id}}"
 !define COPYRIGHT "{{copyright}}"
-!define OUTFILE "{{product_name}}_{{version}}_{{arch}}.exe"
+!define OUTFILE "{{out_file}}"
 !define ARCH "{{arch}}"
 !define ADDITIONALPLUGINSPATH "{{additional_plugins_path}}"
 !define ALLOWDOWNGRADES "{{allow_downgrades}}"
