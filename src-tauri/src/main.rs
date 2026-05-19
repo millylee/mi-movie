@@ -465,13 +465,6 @@ fn main() {
                 // 默认行为：拦截关闭，改为隐藏
                 if label == "main" {
                     api.prevent_close();
-                    // 隐藏前暂停音视频。WebView2 无原生 API，见：
-                    // https://github.com/MicrosoftEdge/WebView2Feedback/issues/3348
-                    const PAUSE_MEDIA_JS: &str =
-                        "document.querySelectorAll('video, audio').forEach(el => el.pause());";
-                    if let Some(webview) = app_handle.get_webview_window("main") {
-                        let _ = webview.eval(PAUSE_MEDIA_JS);
-                    }
                     let _ = window.hide();
                 }
             }
